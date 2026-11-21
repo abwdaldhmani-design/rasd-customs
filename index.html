@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>رصد | Rasd — مساعد الاحتساب والتدقيق الجمركي</title>
+  <style>
+    :root {
+      --bg: #eef2f6;
+      --card: #ffffff;
+      --ink: #13202c;
+      --muted: #5b6b7c;
+      --navy: #0b3c68;
+      --navy-2: #145388;
+      --teal: #0e7c7b;
+      --ok: #196938;
+      --warn: #a62626;
+      --border: #d7e1ec;
+      --soft: #f4f8fc;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Tahoma, Arial, sans-serif;
+      font-size: 10.5pt;
+      line-height: 1.4;
+      color: var(--ink);
+      background: var(--bg);
+      padding-bottom: 72px;
+    }
+    .app-bar {
+      background: linear-gradient(135deg, var(--navy), var(--navy-2));
+      color: #fff;
+      padding: 10px 14px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    }
+    .app-bar-inner {
+      max-width: 920px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .brand-title { margin: 0; font-size: 15pt; font-weight: bold; }
+    .brand-sub { font-size: 8.6pt; opacity: 0.9; }
+    .fx-pill {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 8.8pt;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .fx-pill input {
+      width: 78px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      border: none;
+      font-size: 9pt;
+      font-weight: bold;
+      color: var(--navy);
+      text-align: center;
+    }
+    .wrap { max-width: 920px; margin: 10px auto; padding: 0 10px; }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+    }
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 5px;
+    }
+    .card-title { margin: 0; font-size: 11.2pt; color: var(--navy); font-weight: bold; }
+    .en-tag { font-size: 8.4pt; color: var(--muted); font-weight: normal; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    @media (max-width: 600px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+    label { display: block; font-size: 8.6pt; font-weight: bold; margin-bottom: 3px; color: var(--ink); }
+    input, select {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      font-size: 9.5pt;
+      background: #fff;
+      color: var(--ink);
+    }
+    .btn-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 7px 11px;
+      font-size: 9.2pt;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .b-primary { background: var(--navy); color: #fff; }
+    .b-teal { background: var(--teal); color: #fff; }
+    .b-ok { background: var(--ok); color: #fff; }
+    .b-light { background: #e6eef6; color: var(--navy); }
+    .b-danger { background: var(--warn); color: #fff; }
+    .b-sm { padding: 4px 8px; font-size: 8.4pt; border-radius: 6px; }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .kpi-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-right: 4px solid var(--navy-2);
+      border-radius: 9px;
+      padding: 8px 10px;
+    }
+    .kpi-box.accent { border-right-color: var(--teal); background: var(--soft); }
+    .kpi-box span { display: block; font-size: 8.4pt; color: var(--muted); }
+    .kpi-box strong { font-size: 11.5pt; color: var(--navy); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9pt;
+      background: var(--card);
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 5px 6px;
+      text-align: right;
+    }
+    th { background: var(--soft); color: var(--navy); font-size: 8.6pt; }
+    .msg { font-size: 8.8pt; font-weight: bold; margin-top: 6px; }
+    .ok { color: var(--ok); }
+    .err { color: var(--warn); }
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      z-index: 999;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+    }
+    .nav-btn {
+      background: transparent;
+      border-radius: 0;
+      padding: 8px 4px;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      font-size: 8.4pt;
+      touch-action: manipulation;
+    }
+    .nav-btn.active {
+      color: var(--navy);
+      background: var(--soft);
+      border-top: 3px solid var(--navy);
+    }
+    .nav-ico { font-size: 11.5pt; line-height: 1; }
+    @media print {
+      body { background: #fff; padding-bottom: 0; }
+      .bottom-nav, .no-print { display: none !important; }
+      .tab-pane { display: block !important; }
+      .wrap { max-width: 100%; margin: 0; padding: 0; }
+      .card { box-shadow: none; break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-bar">
+    <div class="app-bar-inner">
+      <div>
+        <h1 class="brand-title">رصد | Rasd</h1>
+        <div class="brand-sub">مساعد الاحتساب والتدقيق الجمركي <span style="opacity:0.85;">(Customs Calculator & Audit)</span></div>
+      </div>
+      <div class="fx-pill no-print">
+        <span>سعر الصرف <span style="opacity:0.85;">(FX)</span>:</span>
+        <input id="topFx" type="number" step="0.0001" min="0.0001" value="1" />
+        <input id="topCurr" type="text" value="YER" style="width:52px;" />
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- تبويب 1: الحاسبة الجمركية -->
+    <section id="tab-calc" class="tab-pane active">
+      <div class="card no-print">
+        <div class="card-head">
+          <h2 class="card-title">بيانات البيان والصنف <span class="en-tag">(Declaration & Item)</span></h2>
+          <button type="button" class="b-light b-sm" onclick="window.print()">طباعة</button>
+        </div>
+        <form id="calcForm">
+          <div class="grid-3" style="margin-bottom:8px;">
+            <div>
+              <label>رقم المرجع / البيان <span class="en-tag">(Ref Code)</span></label>
+              <input id="refCode" type="text" value="SHP-2026-001" required />
+            </div>
+            <div>
+              <label>وصف الشحنة <span class="en-tag">(Shipment)</span></label>
+              <input id="shipTitle" type="text" placeholder="مثال: شحنة أجهزة وإلكترونيات" />
+            </div>
+            <div>
+              <label>اختيار بند من التعرفة <span class="en-tag">(HS Preset)</span></label>
+              <select id="presetSelect"></select>
+            </div>
+          </div>
+
+          <div class="grid-2" style="margin-bottom:8px;">
+            <div>
+              <label>اسم الصنف / البند <span class="en-tag">(Item Name)</span></label>
+              <input id="itemName" type="text" placeholder="مثال: هواتف وأجهزة اتصال" />
+            </div>
+            <div>
+              <label>قيمة البضاعة <span class="en-tag">(FOB)</span></label>
+              <input id="fob" type="number" step="0.01" min="0" value="1000" />
+            </div>
+          </div>
+
+          <div class="grid-3" style="margin-bottom:8px;">
+            <div>
+              <label>أجور الشحن <span class="en-tag">(Freight)</span></label>
+              <input id="freight" type="number" step="0.01" min="0" value="120" />
+            </div>
+            <div>
+              <label>التأمين <span class="en-tag">(Insurance)</span></label>
+              <input id="insurance" type="number" step="0.01" min="0" value="30" />
+            </div>
+            <div>
+              <label>رسوم وبدلات إضافية <span class="en-tag">(Extra Fees)</span></label>
+              <input id="extraFees" type="number" step="0.01" min="0" value="0" />
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div>
+              <label>نسبة الرسم الجمركي % <span class="en-tag">(Duty %)</span></label>
+              <input id="dutyPct" type="number" step="0.01" min="0" value="5" />
+            </div>
+            <div>
+              <label>نسبة الضريبة % <span class="en-tag">(Tax % on CIF+Duty)</span></label>
+              <input id="taxPct" type="number" step="0.01" min="0" value="0" />
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button type="button" id="addBtn" class="b-teal">+ إضافة بند</button>
+            <button type="submit" class="b-primary">حفظ واحتساب الشحنة</button>
+            <button type="button" id="csvBtn" class="b-ok">تصدير CSV</button>
+            <button type="button" id="clearDraftBtn" class="b-light">تفريغ البنود</button>
+          </div>
+        </form>
+        <div id="calcMsg" class="msg ok"></div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-box"><span>إجمالي القيمة الجمركية (CIF)</span><strong id="kCif">0.00</strong></div>
+        <div class="kpi-box"><span>إجمالي الرسوم الجمركية (Duty)</span><strong id="kDuty">0.00</strong></div>
+        <div class="kpi-box"><span>إجمالي الرسوم والضرائب</span><strong id="kTaxFees">0.00</strong></div>
+        <div class="kpi-box accent"><span>الإجمالي التقديري (Grand Total)</span><strong id="kGrand">0.00</strong></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2 class="card-title">كشف بنود الشحنة <span class="en-tag">(Calculated Items)</span></h2>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>الصنف</th>
+                <th>CIF</th>
+                <th>الرسم</th>
+                <th>رسوم وضرائب</th>
+                <th>الإجمالي</th>
+              </tr>
+            </thead>
+            <tbody id="itemRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- تبويب 2: دليل التعرفة (HS Code) -->
+    <section id="tab-tariff" class="tab-pane">
+      <div class="card">
+        <div class="card-head">
+          <h2 class="card-title">دليل بنود التعرفة الجمركية <span class="en-tag">(HS Tariff Guide)</span></h2>
+        </div>
+        <div style="margin-bottom:8px;">
+          <label>بحث برمز البند أو اسم الصنف <span class="en-tag">(Search HS Code / Name)</span></label>
+          <input id="hsFilter" type="text" placeholder="مثال: 8517 أو هواتف أو قمح..." />
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>HS Code</th>
+                <th>الصنف</th>
+                <th>الرسم %</th>
+                <th>الضريبة %</th>
+                <th>إجراء</th>
+              </tr>
+            </thead>
+            <tbody id="tariffBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2 class="card-title">إضافة بند تعرفة مخصص <span class="en-tag">(Custom HS Item)</span></h2>
+        </div>
+        <form id="tariffAddForm">
+          <div class="grid-2" style="margin-bottom:8px;">
+            <div>
+              <label>رمز البند <span class="en-tag">(HS Code)</span></label>
+              <input id="newHs" type="text" placeholder="مثال: 9018.90" required />
+            </div>
+            <div>
+              <label>اسم الصنف <span class="en-tag">(Item Name)</span></label>
+              <input id="newName" type="text" placeholder="مثال: أجهزة ومعدات طبية" required />
+            </div>
+          </div>
+          <div class="grid-2">
+            <div>
+              <label>نسبة الرسم % <span class="en-tag">(Duty %)</span></label>
+              <input id="newDuty" type="number" step="0.01" min="0" value="5" required />
+            </div>
+            <div>
+              <label>نسبة الضريبة % <span class="en-tag">(Tax %)</span></label>
+              <input id="newTax" type="number" step="0.01" min="0" value="0" required />
+            </div>
+          </div>
+          <div class="btn-row">
+            <button type="submit" class="b-primary">حفظ البند في الدليل</button>
+          </div>
+        </form>
+        <div id="tariffMsg" class="msg ok"></div>
+      </div>
+    </section>
+
+    <!-- تبويب 3: التدقيق والمقارنة -->
+    <section id="tab-audit" class="tab-pane">
+      <div class="card">
+        <div class="card-head">
+          <h2 class="card-title">تدقيق ومطابقة الفاتورة الفعلية <span class="en-tag">(Invoice Audit)</span></h2>
+        </div>
+        <form id="auditForm">
+          <div class="grid-2" style="margin-bottom:8px;">
+            <div>
+              <label>CIF الفعلي</label>
+              <input id="actCif" type="number" step="0.01" min="0" value="0" required />
+            </div>
+            <div>
+              <label>الرسم الفعلي</label>
+              <input id="actDuty" type="number" step="0.01" min="0" value="0" required />
+            </div>
+          </div>
+          <div class="grid-2" style="margin-bottom:8px;">
+            <div>
+              <label>رسوم إضافية فعلية</label>
+              <input id="actFees" type="number" step="0.01" min="0" value="0" required />
+            </div>
+            <div>
+              <label>ضريبة فعلية</label>
+              <input id="actTax" type="number" step="0.01" min="0" value="0" required />
+            </div>
+          </div>
+          <div>
+            <label>ملاحظة التدقيق <span class="en-tag">(Notes)</span></label>
+            <input id="actNote" type="text" placeholder="مثال: فروقات قيمة أو سعر صرف" />
+          </div>
+          <div class="btn-row">
+            <button type="submit" class="b-primary">حساب الفروقات</button>
+          </div>
+        </form>
+        <div id="auditOut" class="msg ok"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2 class="card-title">مقارنة شحنتين محفوظتين <span class="en-tag">(Compare Shipments)</span></h2>
+        </div>
+        <form id="cmpForm">
+          <div class="grid-2" style="margin-bottom:8px;">
+            <div>
+              <label>الشحنة الأولى (A)</label>
+              <select id="cmpA"></select>
+            </div>
+            <div>
+              <label>الشحنة الثانية (B)</label>
+              <select id="cmpB"></select>
+            </div>
+          </div>
+          <button type="submit" class="b-teal">مقارنة (B - A)</button>
+        </form>
+        <div style="overflow-x:auto; margin-top:8px;">
+          <table>
+            <thead>
+              <tr>
+                <th>البند المالي</th>
+                <th>الشحنة (A)</th>
+                <th>الشحنة (B)</th>
+                <th>الفرق</th>
+              </tr>
+            </thead>
+            <tbody id="cmpBody"></tbody>
+          </table>
+        </div>
+        <div id="cmpOut" class="msg"></div>
+      </div>
+    </section>
+
+    <!-- تبويب 4: سجل الشحنات -->
+    <section id="tab-history" class="tab-pane">
+      <div class="card">
+        <div class="card-head">
+          <h2 class="card-title">سجل الشحنات المحفوظة <span class="en-tag">(Saved Declarations)</span></h2>
+          <button type="button" id="wipeHistoryBtn" class="b-danger b-sm">حذف السجل</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>المرجع</th>
+                <th>الوصف</th>
+                <th>CIF</th>
+                <th>الإجمالي</th>
+                <th>فتح</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav no-print" id="bottomNav">
+    <button type="button" class="nav-btn active" data-tab="tab-calc" onclick="switchRasdTab('tab-calc', this)">
+      <span class="nav-ico">🧮</span>
+      <span>الحاسبة</span>
+    </button>
+    <button type="button" class="nav-btn" data-tab="tab-tariff" onclick="switchRasdTab('tab-tariff', this)">
+      <span class="nav-ico">📑</span>
+      <span>التعرفة</span>
+    </button>
+    <button type="button" class="nav-btn" data-tab="tab-audit" onclick="switchRasdTab('tab-audit', this)">
+      <span class="nav-ico">🔍</span>
+      <span>التدقيق</span>
+    </button>
+    <button type="button" class="nav-btn" data-tab="tab-history" onclick="switchRasdTab('tab-history', this)">
+      <span class="nav-ico">🗂️</span>
+      <span>السجل</span>
+    </button>
+  </nav>
+
+  <script>
+    const SHIP_KEY = "rasd_yemen_shipments_v1";
+    const TARIFF_KEY = "rasd_yemen_tariffs_v1";
+    const memoryStore = {};
+
+    function safeRead(key) {
+      try {
+        if (window.localStorage) {
+          const val = window.localStorage.getItem(key);
+          if (val !== null) return val;
+        }
+      } catch (_) {}
+      return memoryStore[key] || null;
+    }
+
+    function safeWrite(key, val) {
+      memoryStore[key] = val;
+      try {
+        if (window.localStorage) {
+          window.localStorage.setItem(key, val);
+        }
+      } catch (_) {}
+    }
+
+    function safeRemove(key) {
+      delete memoryStore[key];
+      try {
+        if (window.localStorage) {
+          window.localStorage.removeItem(key);
+        }
+      } catch (_) {}
+    }
+
+    window.switchRasdTab = function(tabId, btnEl) {
+      document.querySelectorAll(".nav-btn").forEach((b) => b.classList.remove("active"));
+      document.querySelectorAll(".tab-pane").forEach((p) => p.classList.remove("active"));
+      const targetPane = document.getElementById(tabId);
+      if (targetPane) targetPane.classList.add("active");
+      const targetBtn = btnEl || document.querySelector(`.nav-btn[data-tab="${tabId}"]`);
+      if (targetBtn) targetBtn.classList.add("active");
+      window.scrollTo({ top: 0, behavior: "instant" });
+    };
+
+    const DEFAULT_TARIFFS = [
+      { hs: "8517.13", name: "هواتف وأجهزة اتصال", duty: 5, tax: 0 },
+      { hs: "8471.30", name: "حواسيب محمولة وأجهزة معالجة", duty: 5, tax: 0 },
+      { hs: "6204.00", name: "ملابس ومنسوجات جاهزة", duty: 15, tax: 0 },
+      { hs: "1001.99", name: "قمح وحبوب غذائية أساسية", duty: 0, tax: 0 },
+      { hs: "0402.10", name: "حليب مجفف ومنتجات ألبان", duty: 5, tax: 0 },
+      { hs: "8703.23", name: "مركبات خفيفة للركاب", duty: 25, tax: 0 }
+    ];
+
+    let draftItems = [];
+    let lastTotals = { cif: 0, duty: 0, fees: 0, tax: 0, grand: 0 };
+
+    const r2 = (n) => Math.round((Number(n || 0) + Number.EPSILON) * 100) / 100;
+    const fmt = (n) => r2(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    function getTariffs() {
+      try {
+        const saved = JSON.parse(safeRead(TARIFF_KEY) || "null");
+        return Array.isArray(saved) && saved.length ? saved : [...DEFAULT_TARIFFS];
+      } catch (_) {
+        return [...DEFAULT_TARIFFS];
+      }
+    }
+
+    function saveTariffs(list) {
+      safeWrite(TARIFF_KEY, JSON.stringify(list));
+    }
+
+    function renderTariffViews(filter = "") {
+      const q = filter.trim().toLowerCase();
+      const all = getTariffs();
+      const filtered = all.filter((t) => !q || t.hs.toLowerCase().includes(q) || t.name.toLowerCase().includes(q));
+
+      const presetSel = document.getElementById("presetSelect");
+      presetSel.innerHTML = `<option value="">-- إدخال يدوي --</option>`;
+      all.forEach((t, idx) => {
+        presetSel.add(new Option(`${t.hs} — ${t.name} (${t.duty}%)`, String(idx)));
+      });
+
+      const tbody = document.getElementById("tariffBody");
+      tbody.innerHTML = "";
+      filtered.forEach((t) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>${t.hs}</strong></td>
+          <td>${t.name}</td>
+          <td>${Number(t.duty).toFixed(2)}%</td>
+          <td>${Number(t.tax).toFixed(2)}%</td>
+          <td><button type="button" class="b-teal b-sm" onclick="useTariff('${t.hs}')">تطبيق</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    window.useTariff = function(hs) {
+      const found = getTariffs().find((x) => x.hs === hs);
+      if (!found) return;
+      if (!document.getElementById("itemName").value.trim()) {
+        document.getElementById("itemName").value = found.name;
+      }
+      document.getElementById("dutyPct").value = found.duty;
+      document.getElementById("taxPct").value = found.tax;
+      window.switchRasdTab("tab-calc");
+      document.getElementById("calcMsg").className = "msg ok";
+      document.getElementById("calcMsg").textContent = `تم تطبيق البند (${found.hs}) على الحاسبة.`;
+    };
+
+    document.getElementById("presetSelect").addEventListener("change", (e) => {
+      const idx = parseInt(e.target.value, 10);
+      const all = getTariffs();
+      if (!Number.isNaN(idx) && all[idx]) {
+        window.useTariff(all[idx].hs);
+      }
+    });
+
+    document.getElementById("hsFilter").addEventListener("input", (e) => {
+      renderTariffViews(e.target.value);
+    });
+
+    document.getElementById("tariffAddForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const hs = document.getElementById("newHs").value.trim();
+      const name = document.getElementById("newName").value.trim();
+      const duty = parseFloat(document.getElementById("newDuty").value) || 0;
+      const tax = parseFloat(document.getElementById("newTax").value) || 0;
+      const list = getTariffs();
+      list.unshift({ hs, name, duty, tax });
+      saveTariffs(list);
+      renderTariffViews(document.getElementById("hsFilter").value);
+      e.target.reset();
+      document.getElementById("newDuty").value = "5";
+      document.getElementById("newTax").value = "0";
+      document.getElementById("tariffMsg").className = "msg ok";
+      document.getElementById("tariffMsg").textContent = `تمت إضافة البند (${hs}) إلى الدليل.`;
+    });
+
+    function buildItem() {
+      const name = (document.getElementById("itemName").value || "بند").trim();
+      const fob = parseFloat(document.getElementById("fob").value) || 0;
+      const freight = parseFloat(document.getElementById("freight").value) || 0;
+      const insurance = parseFloat(document.getElementById("insurance").value) || 0;
+      const fx = parseFloat(document.getElementById("topFx").value) || 1;
+      const dutyRate = (parseFloat(document.getElementById("dutyPct").value) || 0) / 100;
+      const fees = r2(parseFloat(document.getElementById("extraFees").value) || 0);
+      const taxRate = (parseFloat(document.getElementById("taxPct").value) || 0) / 100;
+
+      const cif = r2((fob + freight + insurance) * fx);
+      const duty = r2(cif * dutyRate);
+      const tax = r2((cif + duty) * taxRate);
+      const total = r2(cif + duty + fees + tax);
+      return { name, cif, duty, fees, tax, total };
+    }
+
+    function renderDraft(list) {
+      const tbody = document.getElementById("itemRows");
+      tbody.innerHTML = "";
+      let sCif = 0, sDuty = 0, sFees = 0, sTax = 0, sGrand = 0;
+
+      list.forEach((it, i) => {
+        sCif = r2(sCif + it.cif);
+        sDuty = r2(sDuty + it.duty);
+        sFees = r2(sFees + it.fees);
+        sTax = r2(sTax + it.tax);
+        sGrand = r2(sGrand + it.total);
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${i + 1}</td>
+          <td>${it.name}</td>
+          <td>${fmt(it.cif)}</td>
+          <td>${fmt(it.duty)}</td>
+          <td>${fmt(it.fees + it.tax)}</td>
+          <td><strong>${fmt(it.total)}</strong></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      lastTotals = { cif: sCif, duty: sDuty, fees: sFees, tax: sTax, grand: sGrand };
+      document.getElementById("kCif").textContent = fmt(sCif);
+      document.getElementById("kDuty").textContent = fmt(sDuty);
+      document.getElementById("kTaxFees").textContent = fmt(sFees + sTax);
+      document.getElementById("kGrand").textContent = fmt(sGrand);
+    }
+
+    function loadShipments() {
+      try {
+        return JSON.parse(safeRead(SHIP_KEY) || "{}");
+      } catch (_) {
+        return {};
+      }
+    }
+
+    function refreshShipmentsUI() {
+      const db = loadShipments();
+      const keys = Object.keys(db);
+
+      const cmpA = document.getElementById("cmpA");
+      const cmpB = document.getElementById("cmpB");
+      const prevA = cmpA.value;
+      const prevB = cmpB.value;
+
+      cmpA.innerHTML = `<option value="">-- اختر A --</option>`;
+      cmpB.innerHTML = `<option value="">-- اختر B --</option>`;
+
+      const hBody = document.getElementById("historyBody");
+      hBody.innerHTML = "";
+
+      keys.forEach((k) => {
+        const s = db[k];
+        const label = `${k}${s.title ? " — " + s.title : ""}`;
+        cmpA.add(new Option(label, k));
+        cmpB.add(new Option(label, k));
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>${k}</strong></td>
+          <td>${s.title || "-"}</td>
+          <td>${fmt(s.total_cif)}</td>
+          <td><strong>${fmt(s.grand_total)}</strong></td>
+          <td><button type="button" class="b-light b-sm" onclick="loadToCalc('${k}')">عرض</button></td>
+        `;
+        hBody.appendChild(tr);
+      });
+
+      if (db[prevA]) cmpA.value = prevA;
+      if (db[prevB]) cmpB.value = prevB;
+    }
+
+    window.loadToCalc = function(ref) {
+      const s = loadShipments()[ref];
+      if (!s) return;
+      document.getElementById("refCode").value = s.reference_code;
+      document.getElementById("shipTitle").value = s.title || "";
+      document.getElementById("topFx").value = s.fx_rate || 1;
+      document.getElementById("topCurr").value = s.currency || "YER";
+      draftItems = Array.isArray(s.items) ? [...s.items] : [];
+      renderDraft(draftItems);
+      window.switchRasdTab("tab-calc");
+      document.getElementById("calcMsg").className = "msg ok";
+      document.getElementById("calcMsg").textContent = `تم تحميل الشحنة (${ref}).`;
+    };
+
+    document.getElementById("addBtn").addEventListener("click", () => {
+      const item = buildItem();
+      draftItems.push(item);
+      renderDraft(draftItems);
+      document.getElementById("calcMsg").className = "msg ok";
+      document.getElementById("calcMsg").textContent = `تمت إضافة (${item.name}) إلى الكشف.`;
+    });
+
+    document.getElementById("calcForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (!draftItems.length) draftItems.push(buildItem());
+      renderDraft(draftItems);
+
+      const ref = document.getElementById("refCode").value.trim() || "SHP-001";
+      const db = loadShipments();
+      db[ref] = {
+        reference_code: ref,
+        title: document.getElementById("shipTitle").value.trim(),
+        currency: (document.getElementById("topCurr").value || "YER").trim().toUpperCase(),
+        fx_rate: parseFloat(document.getElementById("topFx").value) || 1,
+        total_cif: lastTotals.cif,
+        total_duty: lastTotals.duty,
+        total_fees: lastTotals.fees,
+        total_tax: lastTotals.tax,
+        grand_total: lastTotals.grand,
+        items: [...draftItems]
+      };
+      safeWrite(SHIP_KEY, JSON.stringify(db));
+      refreshShipmentsUI();
+      document.getElementById("calcMsg").className = "msg ok";
+      document.getElementById("calcMsg").textContent = `تم حفظ الشحنة (${ref}) بنجاح.`;
+    });
+
+    document.getElementById("clearDraftBtn").addEventListener("click", () => {
+      draftItems = [];
+      renderDraft([]);
+      document.getElementById("calcMsg").className = "msg ok";
+      document.getElementById("calcMsg").textContent = "تم تفريغ بنود الكشف الحالي.";
+    });
+
+    document.getElementById("auditForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const aCif = r2(parseFloat(document.getElementById("actCif").value) || 0);
+      const aDuty = r2(parseFloat(document.getElementById("actDuty").value) || 0);
+      const aFees = r2(parseFloat(document.getElementById("actFees").value) || 0);
+      const aTax = r2(parseFloat(document.getElementById("actTax").value) || 0);
+      const aGrand = r2(aCif + aDuty + aFees + aTax);
+      const note = document.getElementById("actNote").value.trim();
+
+      document.getElementById("auditOut").className = "msg ok";
+      document.getElementById("auditOut").textContent =
+        `الفروق (الفعلي - التقديري): CIF=${fmt(r2(aCif - lastTotals.cif))} | الرسم=${fmt(r2(aDuty - lastTotals.duty))} | الرسوم الإضافية=${fmt(r2(aFees - lastTotals.fees))} | الضريبة=${fmt(r2(aTax - lastTotals.tax))} | الإجمالي=${fmt(r2(aGrand - lastTotals.grand))}${note ? " — " + note : ""}`;
+    });
+
+    document.getElementById("cmpForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const db = loadShipments();
+      const a = db[document.getElementById("cmpA").value];
+      const b = db[document.getElementById("cmpB").value];
+      if (!a || !b) {
+        document.getElementById("cmpOut").className = "msg err";
+        document.getElementById("cmpOut").textContent = "اختر شحنتين محفوظتين أولاً.";
+        return;
+      }
+      const rows = [
+        ["القيمة الجمركية (CIF)", a.total_cif, b.total_cif],
+        ["الرسوم الجمركية (Duty)", a.total_duty, b.total_duty],
+        ["رسوم إضافية (Fees)", a.total_fees, b.total_fees],
+        ["الضرائب (Tax)", a.total_tax, b.total_tax],
+        ["الإجمالي النهائي", a.grand_total, b.grand_total]
+      ];
+      const body = document.getElementById("cmpBody");
+      body.innerHTML = "";
+      rows.forEach(([label, va, vb]) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${label}</td><td>${fmt(va)}</td><td>${fmt(vb)}</td><td><strong>${fmt(r2(vb - va))}</strong></td>`;
+        body.appendChild(tr);
+      });
+      document.getElementById("cmpOut").className = "msg ok";
+      document.getElementById("cmpOut").textContent = `تمت المقارنة بين (${a.reference_code}) و (${b.reference_code}).`;
+    });
+
+    document.getElementById("csvBtn").addEventListener("click", () => {
+      const ref = document.getElementById("refCode").value.trim() || "SHP";
+      const lines = ["ref_code,item,cif,duty,fees,tax,total"];
+      draftItems.forEach((it) => {
+        lines.push(`${ref},"${it.name}",${it.cif.toFixed(2)},${it.duty.toFixed(2)},${it.fees.toFixed(2)},${it.tax.toFixed(2)},${it.total.toFixed(2)}`);
+      });
+      const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `rasd_${ref}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById("wipeHistoryBtn").addEventListener("click", () => {
+      safeRemove(SHIP_KEY);
+      refreshShipmentsUI();
+    });
+
+    renderTariffViews();
+    renderDraft([]);
+    refreshShipmentsUI();
+  </script>
+</body>
+</html>
